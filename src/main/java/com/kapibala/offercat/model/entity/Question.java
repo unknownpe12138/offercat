@@ -1,23 +1,19 @@
 package com.kapibala.offercat.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
 /**
- * 用户
- *
-*
+ * 题目
+ * @TableName question
  */
-@TableName(value = "user")
+@TableName(value ="question")
 @Data
-public class User implements Serializable {
-
+public class Question {
     /**
      * id
      */
@@ -25,44 +21,29 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 用户账号
+     * 标题
      */
-    private String userAccount;
+    private String title;
 
     /**
-     * 用户密码
+     * 内容
      */
-    private String userPassword;
+    private String content;
 
     /**
-     * 开放平台id
+     * 标签列表（json 数组）
      */
-    private String unionId;
+    private String tags;
 
     /**
-     * 公众号openId
+     * 推荐答案
      */
-    private String mpOpenId;
+    private String answer;
 
     /**
-     * 用户昵称
+     * 创建用户 id
      */
-    private String userName;
-
-    /**
-     * 用户头像
-     */
-    private String userAvatar;
-
-    /**
-     * 用户简介
-     */
-    private String userProfile;
-
-    /**
-     * 用户角色：user/admin/ban
-     */
-    private String userRole;
+    private Long userId;
 
     /**
      * 编辑时间
@@ -84,7 +65,4 @@ public class User implements Serializable {
      */
     @TableLogic
     private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }
