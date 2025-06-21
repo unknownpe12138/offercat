@@ -35,10 +35,6 @@ public class Question {
      */
     private String tags;
 
-    /**
-     * 推荐答案
-     */
-    private String answer;
 
     /**
      * 创建用户 id
