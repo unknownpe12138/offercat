@@ -79,21 +79,32 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         // todo 从对象中取值
         Long id = questionBankQueryRequest.getId();
         String title = questionBankQueryRequest.getTitle();
-
+        Long notId = questionBankQueryRequest.getNotId();
+        String searchText = questionBankQueryRequest.getSearchText();
 
         String sortField = questionBankQueryRequest.getSortField();
         String sortOrder = questionBankQueryRequest.getSortOrder();
 
         Long userId = questionBankQueryRequest.getUserId();
+
+        String description = questionBankQueryRequest.getDescription();
+        String picture = questionBankQueryRequest.getPicture();
+
         // todo 补充需要的查询条件
         // 从多字段中搜索
+        if(StringUtils.isNotBlank(searchText)){
+            queryWrapper.like("title", searchText).or().like("description", searchText);
+        }
         // 模糊查询
         queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
-        // JSON 数组查询
+        queryWrapper.like(StringUtils.isNotBlank(description), "description", description);
 
         // 精确查询
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(notId), "not_id", notId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(picture), "picture", picture);
+
         // 排序规则
         queryWrapper.orderBy(SqlUtils.validSortField(sortField),
                 sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
