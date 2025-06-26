@@ -3,6 +3,7 @@ package com.kapibala.offercat.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.kapibala.offercat.common.BaseResponse;
 import com.kapibala.offercat.model.dto.question.QuestionQueryRequest;
 import com.kapibala.offercat.model.entity.Question;
 import com.kapibala.offercat.model.vo.QuestionVO;
@@ -49,4 +50,12 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+    /**
+     * 分页获取题目列表（仅管理员可用）
+     *
+     * @param questionQueryRequest
+     * @return
+     */
+    Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest);
 }

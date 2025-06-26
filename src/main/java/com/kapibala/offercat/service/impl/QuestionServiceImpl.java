@@ -1,18 +1,26 @@
 package com.kapibala.offercat.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.kapibala.offercat.annotation.AuthCheck;
+import com.kapibala.offercat.common.BaseResponse;
 import com.kapibala.offercat.common.ErrorCode;
+import com.kapibala.offercat.common.ResultUtils;
 import com.kapibala.offercat.constant.CommonConstant;
+import com.kapibala.offercat.constant.UserConstant;
 import com.kapibala.offercat.exception.ThrowUtils;
 import com.kapibala.offercat.mapper.QuestionMapper;
 import com.kapibala.offercat.model.dto.question.QuestionQueryRequest;
 import com.kapibala.offercat.model.entity.Question;
+import com.kapibala.offercat.model.entity.QuestionBankQuestion;
 import com.kapibala.offercat.model.entity.User;
 import com.kapibala.offercat.model.vo.QuestionVO;
 import com.kapibala.offercat.model.vo.UserVO;
+import com.kapibala.offercat.service.QuestionBankQuestionService;
 import com.kapibala.offercat.service.QuestionService;
 import com.kapibala.offercat.service.UserService;
 import com.kapibala.offercat.utils.SqlUtils;
@@ -20,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +49,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private QuestionBankQuestionService questionBankQuestionService;
 
     /**
      * 校验数据
@@ -181,6 +194,38 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
+    }
+
+    /**
+     * 分页获取题目列表（仅管理员可用）
+     *
+     * @param questionQueryRequest
+     * @return
+     */
+    public Page<Question> listQuestionByPage(QuestionQueryRequest questionQueryRequest) {
+        long current = questionQueryRequest.getCurrent();
+        long size = questionQueryRequest.getPageSize();
+
+        QueryWrapper<Question> queryWrapper =this.getQueryWrapper(questionQueryRequest);
+
+        // 根据题库查询题目
+        Long questionBankId=questionQueryRequest.getQuestionBankId();
+        if (questionBankId != null) {
+            // 查询题库内的题目id
+            LambdaQueryWrapper<QuestionBankQuestion> lambdaQueryWrapper = Wrappers.lambdaQuery(QuestionBankQuestion.class)
+                    .select(QuestionBankQuestion::getQuestionId)
+                    .eq(QuestionBankQuestion::getQuestionBankId, questionBankId);
+            List<QuestionBankQuestion> questionList = questionBankQuestionService.list(lambdaQueryWrapper);
+            if(CollUtil.isNotEmpty(questionList)){
+                Set<Long> questionIdSet = questionList.stream().map(QuestionBankQuestion::getQuestionId).collect(Collectors.toSet());
+                queryWrapper.in("id", questionIdSet);
+            }
+
+        }
+
+        // 查询数据库
+        Page<Question> questionPage = this.page(new Page<>(current, size), queryWrapper);
+        return questionPage;
     }
 
 }
