@@ -6,6 +6,7 @@ import com.kapibala.offercat.model.dto.user.UserQueryRequest;
 import com.kapibala.offercat.model.entity.User;
 import com.kapibala.offercat.model.vo.LoginUserVO;
 import com.kapibala.offercat.model.vo.UserVO;
+
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
@@ -116,5 +117,21 @@ public interface UserService extends IService<User> {
      * @return
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+
+    /**
+     * 添加用户签到记录
+     * @param userId 用户id
+     * @return 是否成功
+     */
+    boolean addUserSignIn(long userId);
+
+    /**
+     * 获取当前用户签到记录
+     *
+     * @param userId 用户id
+     * @param year   当前年份
+     * @return 签到记录映射
+     */
+    List<Integer> getUserSignInRecord(long userId, Integer year);
 
 }
