@@ -10,10 +10,7 @@ import com.kapibala.offercat.common.ResultUtils;
 import com.kapibala.offercat.constant.UserConstant;
 import com.kapibala.offercat.exception.BusinessException;
 import com.kapibala.offercat.exception.ThrowUtils;
-import com.kapibala.offercat.model.dto.question.QuestionAddRequest;
-import com.kapibala.offercat.model.dto.question.QuestionEditRequest;
-import com.kapibala.offercat.model.dto.question.QuestionQueryRequest;
-import com.kapibala.offercat.model.dto.question.QuestionUpdateRequest;
+import com.kapibala.offercat.model.dto.question.*;
 import com.kapibala.offercat.model.entity.Question;
 import com.kapibala.offercat.model.entity.User;
 import com.kapibala.offercat.model.vo.QuestionVO;
@@ -255,5 +252,13 @@ public class QuestionController {
         // 查询数据库（作为没有 ES 的降级方案）
 //        Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+    }
+
+    @PostMapping("/delete/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchDeleteQuestions(@RequestBody QuestionBatchDeleteRequest questionBatchDeleteRequest) {
+        ThrowUtils.throwIf(questionBatchDeleteRequest == null, ErrorCode.PARAMS_ERROR);
+        questionService.batchDeleteQuestion(questionBatchDeleteRequest.getQuestionIdList());
+        return ResultUtils.success(true);
     }
 }

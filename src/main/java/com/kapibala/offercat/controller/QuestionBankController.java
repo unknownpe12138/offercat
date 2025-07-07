@@ -14,19 +14,23 @@ import com.kapibala.offercat.model.dto.questionBank.QuestionBankAddRequest;
 import com.kapibala.offercat.model.dto.questionBank.QuestionBankEditRequest;
 import com.kapibala.offercat.model.dto.questionBank.QuestionBankQueryRequest;
 import com.kapibala.offercat.model.dto.questionBank.QuestionBankUpdateRequest;
+import com.kapibala.offercat.model.dto.questionBankQuestion.QuestionBankQuestionBatchAddRequest;
 import com.kapibala.offercat.model.entity.Question;
 import com.kapibala.offercat.model.entity.QuestionBank;
 import com.kapibala.offercat.model.entity.User;
 import com.kapibala.offercat.model.vo.QuestionBankVO;
+import com.kapibala.offercat.service.QuestionBankQuestionService;
 import com.kapibala.offercat.service.QuestionBankService;
 import com.kapibala.offercat.service.QuestionService;
 import com.kapibala.offercat.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题库接口
@@ -46,6 +50,8 @@ public class QuestionBankController {
 
     @Resource
     private UserService userService;
+    @Autowired
+    private QuestionBankQuestionService questionBankQuestionService;
 
     // region 增删改查
 
@@ -260,4 +266,42 @@ public class QuestionBankController {
     }
 
     // endregion
+    /**
+     * 批量添加题目到题库
+     *
+     * @param questionBankQuestionBatchAddRequest
+     * @param request
+     */
+    @PostMapping("add/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchAddQuestionToBank(
+            @RequestBody QuestionBankQuestionBatchAddRequest questionBankQuestionBatchAddRequest,
+             HttpServletRequest request
+    ) {
+        ThrowUtils.throwIf(questionBankQuestionBatchAddRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        Long questionBankId = questionBankQuestionBatchAddRequest.getQuestionBankId();
+        List<Long> questionIdList = questionBankQuestionBatchAddRequest.getQuestionId();
+        questionBankQuestionService.batchAddQuestionToBank(questionIdList, questionBankId, loginUser);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 批量从题库移除题目
+     *
+     * @param questionBankQuestionBatchRemoveRequest
+     * @param request
+     */
+    @PostMapping("remove/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchRemoveQuestionToBank(
+            @RequestBody QuestionBankQuestionBatchAddRequest questionBankQuestionBatchRemoveRequest,
+            HttpServletRequest request
+    ) {
+        ThrowUtils.throwIf(questionBankQuestionBatchRemoveRequest == null, ErrorCode.PARAMS_ERROR);
+        Long questionBankId = questionBankQuestionBatchRemoveRequest.getQuestionBankId();
+        List<Long> questionIdList = questionBankQuestionBatchRemoveRequest.getQuestionId();
+        questionBankQuestionService.batchRemoveQuestionFromBank(questionIdList, questionBankId);
+        return ResultUtils.success(true);
+    }
 }

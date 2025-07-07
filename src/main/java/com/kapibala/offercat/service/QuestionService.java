@@ -3,14 +3,12 @@ package com.kapibala.offercat.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.kapibala.offercat.common.BaseResponse;
-import com.kapibala.offercat.model.dto.post.PostQueryRequest;
 import com.kapibala.offercat.model.dto.question.QuestionQueryRequest;
-import com.kapibala.offercat.model.entity.Post;
 import com.kapibala.offercat.model.entity.Question;
 import com.kapibala.offercat.model.vo.QuestionVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题目服务
@@ -68,4 +66,10 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<Question> searchFromEs(QuestionQueryRequest questionQueryRequest);
+
+    /**
+     * 批量删除题目
+     * @param questionList
+     */
+    void batchDeleteQuestion(List<Long> questionList);
 }
