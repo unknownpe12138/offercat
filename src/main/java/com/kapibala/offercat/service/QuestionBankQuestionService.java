@@ -7,6 +7,7 @@ import com.kapibala.offercat.model.dto.questionBankQuestion.QuestionBankQuestion
 import com.kapibala.offercat.model.entity.QuestionBankQuestion;
 import com.kapibala.offercat.model.entity.User;
 import com.kapibala.offercat.model.vo.QuestionBankQuestionVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -68,5 +69,13 @@ public interface QuestionBankQuestionService extends IService<QuestionBankQuesti
      * @param questionBankId
      */
     void batchRemoveQuestionFromBank(List<Long> questionIdList, long questionBankId);
+    /**
+     * 批量添加题目到题库（事务，仅供内部使用）
+     *
+     * @param questionBankQuestions
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void batchAddQuestionToBankInner(List<QuestionBankQuestion> questionBankQuestions);
+
 
 }
