@@ -35,9 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -218,19 +223,40 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         // 合法的题目 id
         List<Long> validQuestionIdList = questionService.listObjs(questionLambdaQueryWrapper,obj->(Long)obj);
         ThrowUtils.throwIf(CollUtil.isEmpty(validQuestionIdList), ErrorCode.PARAMS_ERROR, "合法的题目列表为空");
-        //检查哪些题目还不存在题库中，避免重复插入
+
+        // 检查哪些题目还不存在于题库中，避免重复插入
         LambdaQueryWrapper<QuestionBankQuestion> lambdaQueryWrapper = Wrappers.lambdaQuery(QuestionBankQuestion.class)
                 .eq(QuestionBankQuestion::getQuestionBankId, questionBankId)
-                .notIn(QuestionBankQuestion::getQuestionId, validQuestionIdList);
-        List<QuestionBankQuestion> notExitQuestionList = this.list(lambdaQueryWrapper);
-        validQuestionIdList = notExitQuestionList.stream()
-                .map(QuestionBankQuestion::getId)
-                .collect(Collectors.toList());
-        ThrowUtils.throwIf(CollUtil.isEmpty(validQuestionIdList), ErrorCode.PARAMS_ERROR, "所有题目都存在与题库中");
+                .in(QuestionBankQuestion::getQuestionId, validQuestionIdList);
+        List<QuestionBankQuestion> existQuestionList = this.list(lambdaQueryWrapper);
 
+        // 已存在于题库中的题目 id
+        Set<Long> existQuestionIdSet = existQuestionList.stream()
+                .map(QuestionBankQuestion::getId)
+                .collect(Collectors.toSet());
+
+        // 已存在于题库中的题目 id，不需要再次添加
+        validQuestionIdList = validQuestionIdList.stream().filter(questionId -> {
+            return !existQuestionIdSet.contains(questionId);
+        }).collect(Collectors.toList());
+        ThrowUtils.throwIf(CollUtil.isEmpty(validQuestionIdList), ErrorCode.PARAMS_ERROR, "所有题目都存在与题库中");
         // 检查题库 id 是否存在
         QuestionBank questionBank = questionBankService.getById(questionBankId);
         ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR, "题库不存在");
+
+        // 自定义线程池（IO 密集型）
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(
+                20,                // 核心线程数
+                50,                            // 最大线程数
+                60L,                           // 线程空闲存活时间
+                TimeUnit.SECONDS,               // 存活时间单位
+                new LinkedBlockingDeque<>(10000),   // 阻塞队列容量
+                new ThreadPoolExecutor.CallerRunsPolicy()   // 拒绝策略： 由调用线程处理任务
+        );
+
+        // 保存所有批次任务
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         //分批处理，避免长事务，假设每次处理1000条
         int batchSize = 1000;
         int totalQuestionListSize = validQuestionIdList.size();
@@ -247,8 +273,21 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
                     }).collect(Collectors.toList());
             //使用事务处理每批数据
             QuestionBankQuestionService questionBankQuestionService = (QuestionBankQuestionServiceImpl)AopContext.currentProxy();
-            questionBankQuestionService.batchAddQuestionToBankInner(questionBankQuestions);
+
+            //异步处理每批数据，将任务添加到异步任务列表
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                questionBankQuestionService.batchAddQuestionToBankInner(questionBankQuestions);
+            }, customExecutor).exceptionally(ex->{
+                log.error("批处理任务执行失败",ex);
+                return null;
+            });
+            futures.add(future);
         }
+        // 等待所有批次完成操作
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // 关闭线程池
+        customExecutor.shutdown();
     }
 
     /**
