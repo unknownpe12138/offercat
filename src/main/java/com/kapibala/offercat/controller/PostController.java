@@ -1,6 +1,7 @@
 package com.kapibala.offercat.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kapibala.offercat.annotation.AuthCheck;
 import com.kapibala.offercat.common.BaseResponse;
