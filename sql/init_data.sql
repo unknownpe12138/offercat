@@ -3,15 +3,15 @@ use offercat;
 
 -- 用户表初始数据（密码是 12345678）
 INSERT INTO user (id, userAccount, userPassword, unionId, mpOpenId, userName, userAvatar, userProfile, userRole)
-VALUES (1, 'user1', 'b0dd3697a192885d7c055db46155b26a', 'unionId1', 'mpOpenId1', 'user1',
+VALUES (1, 'user1', 'f327b8df30f83d9765d32f134a5af017', 'unionId1', 'mpOpenId1', 'user1',
         '', '喜欢编程的小白', 'user'),
-       (2, 'user2', 'b0dd3697a192885d7c055db46155b26a', 'unionId2', 'mpOpenId2', 'user2',
+       (2, 'user2', 'f327b8df30f83d9765d32f134a5af017', 'unionId2', 'mpOpenId2', 'user2',
         '', '全栈开发工程师', 'user'),
-       (3, 'user3', 'b0dd3697a192885d7c055db46155b26a', 'unionId3', 'mpOpenId3', 'user3',
+       (3, 'user3', 'f327b8df30f83d9765d32f134a5af017', 'unionId3', 'mpOpenId3', 'user3',
         '', '前端爱好者', 'user'),
-       (4, 'user4', 'b0dd3697a192885d7c055db46155b26a', 'unionId4', 'mpOpenId4', 'user4',
+       (4, 'user4', 'f327b8df30f83d9765d32f134a5af017', 'unionId4', 'mpOpenId4', 'user4',
         '', '后端开发工程师', 'user'),
-       (5, 'user', 'b0dd3697a192885d7c055db46155b26a', NULL, NULL, '程序员', '',
+       (5, 'admin', 'f327b8df30f83d9765d32f134a5af017', NULL, NULL, '程序员', '',
         '系统管理员', 'admin');
 
 -- 题库表初始数据
